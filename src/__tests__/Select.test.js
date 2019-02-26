@@ -742,6 +742,17 @@ cases(
   }
 );
 
+test('clicking when focused does not open select when openMenuOnClick=false', () => {
+  let spy = jest.fn();
+  let selectWrapper = mount(<Select {...BASIC_PROPS} openMenuOnClick={false} onMenuOpen={spy} />);
+
+  // this will get updated on input click, though click on input is not bubbling up to control component
+  selectWrapper.setState({ isFocused: true });
+  let controlComponent = selectWrapper.find('div.react-select__control');
+  controlComponent.simulate('mouseDown', { target: { tagName: 'div' } });
+  expect(spy).not.toHaveBeenCalled();
+});
+
 cases(
   'focus on options > keyboard interaction with Menu',
   ({ props, selectedOption, nextFocusOption, keyEvent = [] }) => {
@@ -1069,6 +1080,36 @@ cases(
     },
   }
 );
+
+cases('Clicking Enter on a focused select', ({ props = BASIC_PROPS, expectedValue }) => {
+  let wrapper = mount(<Select { ...props } autoFocus/>);
+  let event = {
+    key: 'Enter',
+    defaultPrevented: false,
+    preventDefault: function () {
+      this.defaultPrevented = true;
+    }
+  };
+  const selectWrapper = wrapper.find(Select);
+  selectWrapper.instance().setState({ focusedOption: OPTIONS[0] });
+  selectWrapper.instance().onKeyDown(event);
+  console.log(event.defaultPrevented);
+  expect(event.defaultPrevented).toBe(expectedValue);
+}, {
+  'while menuIsOpen && focusedOption && !isComposing  > should invoke event.preventDefault': {
+    props: {
+      ...BASIC_PROPS,
+      menuIsOpen: true,
+    },
+    expectedValue: true,
+  },
+  'while !menuIsOpen > should not invoke event.preventDefault': {
+    props: {
+      ...BASIC_PROPS,
+    },
+    expectedValue: false,
+  }
+});
 
 cases(
   'clicking on select using secondary button on mouse',
@@ -1432,7 +1473,7 @@ test('should call onChange with `null` on hitting backspace when backspaceRemove
   selectWrapper
     .find(Control)
     .simulate('keyDown', { keyCode: 8, key: 'Backspace' });
-  expect(onChangeSpy).toHaveBeenCalledWith(null, { action: 'clear' });
+  expect(onChangeSpy).toHaveBeenCalledWith(null, { action: 'clear', name: 'test-input-name' });
 });
 
 test('should call onChange with an array on hitting backspace when backspaceRemovesValue is true and isMulti is true', () => {
@@ -1449,7 +1490,7 @@ test('should call onChange with an array on hitting backspace when backspaceRemo
   selectWrapper
     .find(Control)
     .simulate('keyDown', { keyCode: 8, key: 'Backspace' });
-  expect(onChangeSpy).toHaveBeenCalledWith([], { action: 'pop-value' });
+  expect(onChangeSpy).toHaveBeenCalledWith([], { action: 'pop-value', name: 'test-input-name', removedValue: undefined });
 });
 
 test('multi select > clicking on X next to option will call onChange with all options other that the clicked option', () => {

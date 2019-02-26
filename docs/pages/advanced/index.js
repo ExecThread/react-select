@@ -23,7 +23,7 @@ export default function Advanced() {
   return (
     <Fragment>
       <Helmet>
-        <title>API - React Select</title>
+        <title>Advanced - React Select</title>
         <meta
           name="description"
           content="The react-select property API documentation."
@@ -178,7 +178,6 @@ export default function Advanced() {
 
       ${(
         <ExampleWrapper
-          isEditable={false}
           label="Example of controlled MenuIsOpen"
           urlPath="docs/examples/ControlledMenu.js"
           raw={require('!!raw-loader!../../examples/ControlledMenu.js')}
